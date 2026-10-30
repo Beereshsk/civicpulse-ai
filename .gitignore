@@ -1,5 +1,8 @@
 __pycache__/
 *.py[cod]
+.env
+.env.*
+!.env.example
 civicpulse.sqlite3
 civicpulse-*.sqlite3
 static/uploads/*

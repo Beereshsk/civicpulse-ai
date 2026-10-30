@@ -24,7 +24,7 @@ from seed_data import seed_demo
 ROOT = Path(__file__).resolve().parent
 DB_PATH = Path(os.environ.get("CIVICPULSE_DB", ROOT / "civicpulse.sqlite3"))
 STATIC = ROOT / "static"
-UPLOADS = STATIC / "uploads"
+UPLOADS = Path(os.environ.get("CIVICPULSE_UPLOAD_DIR", STATIC / "uploads")).resolve()
 MAX_BODY = 3 * 1024 * 1024
 
 
@@ -47,7 +47,7 @@ def connect():
 
 
 def init_db():
-    UPLOADS.mkdir(exist_ok=True)
+    UPLOADS.mkdir(parents=True, exist_ok=True)
     with connect() as db:
         db.executescript("""
         CREATE TABLE IF NOT EXISTS reports (
@@ -159,8 +159,14 @@ class Handler(BaseHTTPRequestHandler):
             return self.send_json(item)
         if path == "/" or path.startswith("/static/"):
             name = "index.html" if path == "/" else path.removeprefix("/static/")
-            target = (STATIC / name).resolve()
-            if not target.is_relative_to(STATIC.resolve()) or not target.is_file(): return self.send_error(404)
+            if name == "uploads" or name.startswith("uploads/"):
+                root = UPLOADS
+                relative_name = name.removeprefix("uploads/")
+            else:
+                root = STATIC
+                relative_name = name
+            target = (root / relative_name).resolve()
+            if not target.is_relative_to(root.resolve()) or not target.is_file(): return self.send_error(404)
             data = target.read_bytes()
             self.send_response(200)
             self.send_header("Content-Type", mimetypes.guess_type(target.name)[0] or "application/octet-stream")
@@ -224,8 +230,9 @@ class Handler(BaseHTTPRequestHandler):
             binary = base64.b64decode(match.group(2), validate=True)
             if len(binary) > 2 * 1024 * 1024: return self.send_json({"error": "Image must be 2 MB or smaller."}, 400)
             ext = "jpg" if match.group(1) == "jpeg" else match.group(1)
-            image_path = "/static/uploads/" + uuid.uuid4().hex + "." + ext
-            (ROOT / image_path.lstrip("/")).write_bytes(binary)
+            image_name = uuid.uuid4().hex + "." + ext
+            image_path = "/static/uploads/" + image_name
+            (UPLOADS / image_name).write_bytes(binary)
         created = now(); report_id = "CP-" + uuid.uuid4().hex[:8].upper(); tracking = "TRK-" + uuid.uuid4().hex[:8].upper()
         analysis = process_complaint({"id": report_id, "description": description, "category": category,
             "address": address, "lat": lat, "lon": lon, "created_at": created},
@@ -268,8 +275,9 @@ class Handler(BaseHTTPRequestHandler):
 
 def main():
     init_db()
-    host = os.environ.get("CIVICPULSE_HOST", "127.0.0.1")
     port = int(os.environ.get("PORT", "8000"))
+    default_host = "0.0.0.0" if "PORT" in os.environ else "127.0.0.1"
+    host = os.environ.get("CIVICPULSE_HOST", default_host)
     print(f"CivicPulse AI demo: http://{host}:{port}  (SQLite: {DB_PATH})")
     print("Local prototype only; operator routes have no authentication.")
     ThreadingHTTPServer((host,port), Handler).serve_forever()
