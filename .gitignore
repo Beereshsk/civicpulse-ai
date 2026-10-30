@@ -1,0 +1,6 @@
+__pycache__/
+*.py[cod]
+civicpulse.sqlite3
+civicpulse-*.sqlite3
+static/uploads/*
+!static/uploads/.gitkeep

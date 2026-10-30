@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#102b35"><title>CivicPulse AI — From signal to service</title>
+  <script>
+    window.addEventListener('error', event => {
+      const notice = document.getElementById('notice');
+      if (notice) { notice.textContent = `Dashboard interface error: ${event.message || 'script failed to load'}`; notice.classList.remove('hidden'); }
+    }, true);
+    window.addEventListener('unhandledrejection', event => {
+      const notice = document.getElementById('notice');
+      if (notice) { notice.textContent = `Dashboard request error: ${event.reason?.message || 'unexpected request failure'}`; notice.classList.remove('hidden'); }
+    });
+  </script>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="#overview" data-page="overview"><span class="brand-mark"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3.5 27.5 10v12L16 28.5 4.5 22V10L16 3.5Z"/><path d="m10.4 16.2 3.7 3.7 7.7-8"/></svg></span><span><b>CivicPulse</b><small>From signal to service</small></span></a>
+      <div class="workspace-label">DEMO WORKSPACE</div>
+      <nav class="main-nav" aria-label="Main navigation">
+        <button class="nav-link active" data-page="overview"><span class="nav-icon">◫</span> Overview</button>
+        <button class="nav-link" data-page="reports"><span class="nav-icon">▤</span> Reports <span id="navReportCount" class="nav-count">—</span></button>
+        <button class="nav-link" data-page="submit"><span class="nav-icon">＋</span> Report an issue</button>
+        <button class="nav-link" data-page="track"><span class="nav-icon">⌁</span> Track a report</button>
+      </nav>
+      <div class="side-bottom"><div class="demo-card"><span class="demo-pulse"></span><div><b>Fictional demonstration</b><p>All records and coordinates are synthetic.</p></div></div><div class="profile-row"><div class="avatar">CP</div><div><b>District operations</b><small>Local prototype</small></div><span class="profile-dots">···</span></div></div>
+    </aside>
+    <main class="main-area">
+      <header class="topbar"><div class="crumb"><span>Workspace</span><span class="crumb-slash">/</span><b id="crumbCurrent">Overview</b></div><div class="top-actions"><span class="live-indicator"><i></i> Demo data</span><button class="icon-button" id="refreshBtn" title="Refresh dashboard" aria-label="Refresh dashboard">↻</button><div class="avatar small-avatar">CP</div></div></header>
+      <div id="notice" class="notice hidden" role="status"></div>
+      <section id="page-overview" class="page active-page">
+        <div class="page-heading"><div><div class="eyebrow">DISTRICT PULSE <span class="eyebrow-dot"></span> <span id="todayLabel">DEMO SNAPSHOT</span></div><h1>Good morning, team.</h1><p>Here’s what needs attention across the demonstration district.</p></div><button class="button primary" data-page="submit"><span>＋</span> New report</button></div>
+        <div id="metricGrid" class="metric-grid"><div class="loading-card">Loading district signals…</div></div>
+        <div class="dashboard-grid">
+          <article class="panel span-2"><div class="panel-heading"><div><div class="eyebrow">CITIZEN SIGNAL</div><h2>Reports over time</h2><p>Intake across the last 14 days</p></div><span class="subtle-pill">Daily volume</span></div><div id="trendChart" class="chart-wrap"></div></article>
+          <article class="panel"><div class="panel-heading"><div><div class="eyebrow">WORKLOAD</div><h2>By category</h2><p>Current report mix</p></div><button class="text-button" data-page="reports">View all →</button></div><div id="categoryChart" class="category-chart"></div></article>
+          <article class="panel span-2"><div class="panel-heading"><div><div class="eyebrow">PLACE SIGNALS</div><h2>Emerging hotspots</h2><p>Nearby reports grouped on synthetic demo coordinates</p></div><span class="subtle-pill">500 m clustering</span></div><div class="map-card"><div class="map-grid"><div class="map-label">SIMULATED DISTRICT GRID · NOT A LIVE MAP</div><div id="mapPoints" class="map-points"></div><div id="mapPins" class="map-pins"></div><div class="map-axis x-axis">DEMO EAST ↗</div><div class="map-axis y-axis">DEMO NORTH ↗</div></div><div id="hotspotList" class="hotspot-list"></div></div><div id="hotspotReports" class="hotspot-reports hidden"></div></article>
+          <article class="panel brief-panel"><div class="panel-heading"><div><div class="eyebrow">FROM SIGNAL TO SERVICE</div><h2>Action brief</h2></div><span class="brief-spark">✳</span></div><div id="briefContent"></div><div class="brief-footer"><span>▣ &nbsp;Evidence-linked</span><span id="briefGeneration">Template-generated</span></div></article>
+        </div>
+        <article class="panel recent-panel"><div class="panel-heading"><div><div class="eyebrow">LATEST INTAKE</div><h2>Reports needing a look</h2></div><button class="text-button" data-page="reports">Open report queue →</button></div><div id="recentReports" class="recent-list"></div></article>
+        <div class="engine-footnote"><span>✳</span> Priority and duplicate scores are calculated from saved reports. Check each brief's generator label; priority thresholds are prototype policy.</div>
+      </section>
+      <section id="page-reports" class="page">
+        <div class="page-heading"><div><div class="eyebrow">OPERATIONS</div><h1>Report queue</h1><p>Review signals, compare related reports, and keep citizens informed.</p></div><button class="button primary" data-page="submit">＋ New report</button></div>
+        <article class="panel queue-panel"><div class="queue-toolbar"><div class="search-box"><span>⌕</span><input id="searchInput" type="search" placeholder="Search reports, locations…" autocomplete="off"></div><select id="categoryFilter" aria-label="Filter by category"><option value="">All categories</option><option>Roads and potholes</option><option>Waterlogging and drainage</option><option>Waste management</option><option>Streetlights and electricity</option><option>Water supply</option><option>Public safety</option><option>Other</option></select><select id="statusFilter" aria-label="Filter by status"><option value="">All statuses</option><option>Submitted</option><option>Under Review</option><option>Assigned</option><option>In Progress</option><option>Resolved</option></select><select id="priorityFilter" aria-label="Filter by priority"><option value="">All priorities</option><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select><select id="signalFilter" aria-label="Filter by report signals"><option value="">All signals</option><option value="safety">Unresolved safety review flags</option><option value="duplicates">Duplicate candidates</option></select><select id="sortFilter" aria-label="Sort reports"><option value="priority">Sort: priority</option><option value="newest">Sort: newest</option><option value="oldest">Sort: oldest</option></select><button id="resetBtn" class="button secondary reset-button">↺ Reset demo</button></div><div id="reportTable" class="report-table-wrap"></div></article>
+        <div class="engine-footnote"><span>✳</span> Similarity scores are not probabilities or duplicate verdicts. Operator decisions preserve the original reports.</div>
+      </section>
+      <section id="page-submit" class="page">
+        <div class="page-heading"><div><div class="eyebrow">CITIZEN INTAKE</div><h1>Make your neighborhood heard.</h1><p>A clear report helps the right team understand what needs attention.</p></div><div class="safe-note">◉ &nbsp; No personal details needed</div></div>
+        <div class="form-layout"><article class="panel form-panel"><div class="form-progress"><span class="step-number">01</span><div><b>Tell us what’s happening</b><small>Usually takes less than a minute</small></div><span class="step-label">REPORT DETAILS</span></div>
+          <form id="reportForm"><label class="field-label" for="description">Describe the issue <span class="required">*</span></label><textarea id="description" name="description" maxlength="2000" minlength="12" required placeholder="What happened? Where should the city team take a look?" rows="5"></textarea><div class="field-hint"><span>Be specific. Avoid sharing personal information.</span><span id="charCount">0 / 2,000</span></div>
+            <label class="field-label" for="category">Issue category <span class="required">*</span></label><select id="category" name="category" required><option value="">Choose the closest fit</option><option>Roads and potholes</option><option>Waterlogging and drainage</option><option>Waste management</option><option>Streetlights and electricity</option><option>Water supply</option><option>Public safety</option><option>Other</option></select>
+            <label class="field-label" for="address">Location or nearby landmark <span class="required">*</span></label><input id="address" name="address" required maxlength="180" placeholder="e.g. Lantern Avenue, near the market crossing"><div class="field-hint">A nearby landmark helps crews find the issue.</div>
+            <details class="coords-details"><summary>Optional: add map coordinates</summary><div class="coords-row"><label>Latitude<input id="lat" type="number" step="any" min="-90" max="90" placeholder="12.345"></label><label>Longitude<input id="lon" type="number" step="any" min="-180" max="180" placeholder="67.890"></label></div><small>Only add coordinates if you know them. They are not required.</small></details>
+            <label class="field-label">Add a photo <span class="optional">OPTIONAL</span></label><label class="upload-box" for="imageInput"><span class="upload-icon">↥</span><span><b id="uploadTitle">Choose a photo</b><small>PNG, JPG or WebP · up to 2 MB</small></span><span class="upload-browse">Browse files</span><input id="imageInput" type="file" accept="image/png,image/jpeg,image/webp"></label><div id="imagePreview" class="image-preview hidden"></div>
+            <div id="formError" class="form-error hidden" role="alert"></div><button id="submitButton" class="button primary submit-button" type="submit">Send report <span>→</span></button><p class="privacy-note">By submitting, you agree that this fictional demo report can be used for demonstration purposes.</p>
+          </form></article><aside class="intake-aside"><div class="aside-icon">✳</div><h3>Every signal helps.</h3><p>Your report is analyzed for issue type and urgency, then routed to an appropriate demo department.</p><div class="aside-steps"><div><span>1</span><b>You share a signal</b></div><div><span>2</span><b>We assess and route it</b></div><div><span>3</span><b>You follow its progress</b></div></div><div class="aside-disclaimer">Demo mode · No government systems are connected.</div></aside></div>
+      </section>
+      <section id="page-track" class="page">
+        <div class="page-heading"><div><div class="eyebrow">CITIZEN FOLLOW-UP</div><h1>Stay in the loop.</h1><p>Use the tracking ID from your confirmation to check for updates.</p></div></div>
+        <div class="track-layout"><article class="panel track-search-panel"><span class="track-symbol">⌁</span><h2>Find your report</h2><p>Your tracking ID starts with <b>TRK-</b>. It appears on your submission confirmation.</p><form id="trackForm"><label class="field-label" for="trackingInput">Tracking ID</label><div class="track-input-row"><input id="trackingInput" required placeholder="TRK-XXXXXXXX" autocomplete="off"><button class="button primary" type="submit">Find report →</button></div></form><div id="trackError" class="form-error hidden" role="alert"></div></article><div id="trackResult" class="track-result"></div></div>
+        <div class="engine-footnote"><span>▣</span> This page shows public updates only. Internal operator notes are never included.</div>
+      </section>
+      <footer class="app-footer"><span>◈ &nbsp; CivicPulse AI</span><span>Prototype for PromptWars × ASTRA · Fictional data · Local demo only</span></footer>
+    </main>
+  </div>
+  <div id="detailModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-backdrop" data-close-modal></div><div class="modal-card"><div id="modalContent"></div></div></div>
+  <div id="toast" class="toast" role="status"></div>
+  <script src="/static/app.js" defer></script>
+</body></html>
